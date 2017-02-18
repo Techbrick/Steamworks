@@ -3,6 +3,11 @@
 #include "PIDLoop.h"
 #include "Aimer.h"
 #include "AHRS.h"
+#include "GearSubsystem.h"
+#include "ShooterSubsystem.h"
+#include "IR.h"
+#include "Filters.h"
+#include "CANTalon.h"
 #include <math.h>
 #include <thread>
 #include <fstream>
@@ -14,6 +19,10 @@
 
 class Robot : public SampleRobot {
 
+	CANTalon frontLeftMotor;
+	CANTalon frontRightMotor;
+	CANTalon rearLeftMotor;
+	CANTalon rearRightMotor; //TODO: reinitialize for new drive train
 	frc::RobotDrive robotDrive;
 	frc::Joystick driveStick;
 	frc::Joystick operatorStick;
@@ -22,8 +31,12 @@ class Robot : public SampleRobot {
 	Aimer aimer;
 	Ultrasonic leftProx;
 	Ultrasonic rightProx;
-	DigitalInput leftIR;
-	DigitalInput rightIR;
+	IR leftIR;
+	IR rightIR;
+	GearSubsystem gear;
+	ShooterSubsystem shooter;
+	Compressor compressor;
+	Filters filter;
 
 public:
 	Robot();
