@@ -9,15 +9,10 @@
 #include "Aimer.h"
 #include "PIDLoop.h"
 #include <vector>
+#include "Filters.h"
 
 #ifndef SRC_ACCUMUATOR_H_
 #define SRC_ACCUMUATOR_H_
-
-struct DoubleDouble
-{
-	DoubleDouble(float xt, float yt, float zt): x(xt), y(yt), angle(zt) {}
-	float x, y, angle;
-};
 
 class Accumulator
 {
