@@ -10,8 +10,8 @@ namespace Constants {
   static constexpr int rearRightDriveChannel = 3;
   static constexpr int driveStickChannel = 0;
   static constexpr int operatorStickChannel = 1;
-  static constexpr int gearReleaseInSole = 4;
-  static constexpr int gearReleaseOutSole = 5;
+  static constexpr int gearActuatorInSole = 1; //TODO: may change
+  static constexpr int gearActuatorOutSole = 2; //TODO: may change
   static constexpr int rotatorChannel = 5;
   static constexpr int shooterChannel = 7;
   static constexpr int agitatorChannel = 0;
@@ -20,8 +20,9 @@ namespace Constants {
   static constexpr int intakeMotorPin = 99;
   static constexpr int verticalConveyorMotorPin = 1;
   static constexpr int climberPin = 6;
-  static constexpr int superShifterInSole = 6;
-  static constexpr int superShifterOutSole = 7;
+  static constexpr int brakesInSole = 4; //TODO: may change
+  static constexpr int brakesOutSole = 5; //TODO: may change
+  static constexpr int intakePDPChannel = 10;
 
   //PID
   static constexpr float angle_p_default = .025;
@@ -34,26 +35,10 @@ namespace Constants {
   static constexpr float x_i_default = .001;
   static constexpr float x_d_default = .001;
 
-
-  //Joystick Buttons TESTING
-/*  static constexpr int runGearMoveThreadButton = 99;
-  static constexpr int cancelGearMoveThreadButton = 99;
-  static constexpr int turnToGearButton = 1;
-  static constexpr int moveToGearButton = 2;
-  static constexpr int driveOneAxisButton = 3;
-  static constexpr int gearReleaseButton = 99;
-  static constexpr int shooterAutoAngleButton = 99;
-  static constexpr int shooterShootButton = 99;
-  static constexpr int driveXAxis = 0;
-  static constexpr int driveYAxis = 1;
-  static constexpr int driveZAxis = 2;
-  static constexpr int cancelAllButton = 99;*/
-
   //Joystick
-  static constexpr int turnToGearButton = 99; //unused in actual competition
   static constexpr int moveToGearButton = 2;
   static constexpr int driveOneAxisButton = 7;
-  static constexpr int gearReleaseButton = 4;
+  static constexpr int gearActuateButton = 13;
   static constexpr int shooterAutoAngleButton = 5;
   static constexpr int shooterShootButton = 6;
   static constexpr int cancelAllButton = 3;
@@ -62,6 +47,29 @@ namespace Constants {
   static constexpr int driveZAxis = 2;
   static constexpr int fieldOrientedDriveButton = 14;
   static constexpr int swapCamerasButton = 8;
+  static constexpr int swapDriveButton = 8;
+  static constexpr int intakeActivateButton = 9;
+  static constexpr int climbButton = 1; //TODO: may want to change - ask drivers / kyle
+  static constexpr int climbDownButton = 12;
+  static constexpr int brakeButton = 13; //TODO: may want to change - ask drivers / kyle
+
+  //Button Defs
+  /*
+   * 1: Square
+   * 2: X
+   * 3: Circle
+   * 4: Triangle
+   * 5: L1
+   * 6: R1
+   * 7: L2
+   * 8: R2
+   * 9: Share
+   * 10: Options
+   * 11: Press Left Joystick
+   * 12: Press Right Joystick
+   * 13: PS4 Button
+   * 14: Touchpad
+   */
 
   //Joystick scaling constants
   static constexpr float driveXDeadZone = .2;
@@ -79,6 +87,12 @@ namespace Constants {
 
   //Climber
   static constexpr int climberMaxSpeed = 512; //TODO: temp
+  static constexpr int climberRunSpeed = 1.0;
+
+  //Intake
+  static constexpr float intakeRunSpeed = 1.0; //TODO: temp
+  static constexpr float verticalConveyorRunSpeed = 1.0; //TODO: temp
+  static constexpr float intakeCurrentMax = 100; //TODO: temp
 
 };
 #endif
