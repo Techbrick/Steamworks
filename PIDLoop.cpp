@@ -104,10 +104,10 @@ float PIDLoop::PIDAngle(float angleOffset, float desiredAngle) {
   //frc::Wait(iteration_time);
   logger.close();
 
-  SmartDashboard::PutNumber("Accumulated i", i_Angle);
+  /*SmartDashboard::PutNumber("Accumulated i", i_Angle);
   SmartDashboard::PutNumber("Desired Angle", desiredAngle);
   SmartDashboard::PutNumber("angleOffset", angleOffset);
-  SmartDashboard::PutNumber("angle_error", angle_error);
+  SmartDashboard::PutNumber("angle_error", angle_error);*/
 
   return angleOutput;
 }
@@ -177,7 +177,7 @@ float PIDLoop::PIDX(float angleToGear) {
 
   logger.close(); //close logger
 
-  SmartDashboard::PutNumber("x_error", x_error);
+  //SmartDashboard::PutNumber("x_error", x_error);
 
   return xOutput;
 }
@@ -212,9 +212,9 @@ float PIDLoop::PIDY(float lDistance, float rDistance) {
   //frc::Wait(iteration_time);
 
   logger.close(); //close logger
-  SmartDashboard::PutNumber("y_error", y_error);
+  /*SmartDashboard::PutNumber("y_error", y_error);
   SmartDashboard::PutNumber("avgDist", averageDistance);
-  SmartDashboard::PutNumber("i_Y", i_Y);
+  SmartDashboard::PutNumber("i_Y", i_Y);*/
 
   return -yOutput;
 }

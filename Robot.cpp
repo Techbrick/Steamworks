@@ -147,7 +147,16 @@ void Robot::OperatorControl()
 	climber.enable();
 	compressor.Start();
 
+	//accumulator
 	Accumulator accum((float)0.0, (float)0.0, (float)0.0, 2, leftProx, rightProx, aimer, *encoder, pid);
+	double lastLeftProxValue = 0;
+	double lastLeftProxTime = 0;
+	double lastRightProxValue = 0;
+	double lastrightProxTime = 0;
+	double lastEncoderDistance = 0;
+	DoubleDouble driveVals(0, 0, 0);
+	double yTargetDistance = -9999.0;
+	bool inYTargetMode = false;
 
 	//camera switching
 	int cameraInOperation = 1;

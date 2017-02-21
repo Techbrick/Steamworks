@@ -98,6 +98,7 @@ namespace Constants {
   static constexpr float rightCameraOffset = 7.5;
   static constexpr float leftCameraOffset = -7.5;
   static constexpr float minStrafePower = .3;
+  static constexpr float minForwardPower = .15;
 
   //Intake
   static constexpr float intakeRunSpeed = 1.0; //TODO: temp
