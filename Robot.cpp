@@ -1,5 +1,6 @@
 #include "Robot.h"
 #include "WPILib.h"
+#include <opencv2/core/core.hpp> //TODO: do we need this?
 
 static float scaleJoysticks(float power, float dead, float max, int degree) {
 	if (degree < 0) {	// make sure degree is positive
@@ -41,9 +42,13 @@ Robot::Robot() :
 		intake(Constants::intakeMotorPin, Constants::verticalConveyorMotorPin),
 		climber(Constants::climberPin),
 		brakes(Constants::brakesInSole, Constants::brakesOutSole),
-		pdp()
+		pdp(),
+		encoder(NULL) //TODO: make sure we need this
 {
+	encoder = new Encoder(8,9,false,Encoder::EncodingType::k4X);
+	encoder->SetDistancePerPulse(.0092);
 	robotDrive.SetExpiration(0.1);
+	gyro.ZeroYaw();
 	robotDrive.SetInvertedMotor(RobotDrive::kFrontLeftMotor, false);
 	robotDrive.SetInvertedMotor(RobotDrive::kRearLeftMotor, false);
 	robotDrive.SetInvertedMotor(RobotDrive::kFrontRightMotor, true);
@@ -51,7 +56,14 @@ Robot::Robot() :
 }
 
 void Robot::RobotInit() {
-	CameraServer::GetInstance()->StartAutomaticCapture();
+	camera0 =  CameraServer::GetInstance()->StartAutomaticCapture();
+	camera0.SetResolution(640, 480);
+	camera0.SetExposureManual(78);
+//	camera1 = CameraServer::GetInstance()->StartAutomaticCapture(1);
+//	camera1.SetResolution(640, 480);
+//	camera1.SetExposureManual(312);
+	NetworkTable::SetUpdateRate(.01);
+	SmartDashboard::PutNumber("Joe P-value", -(Constants::accumulatorPower));
 	SmartDashboard::PutNumber("shooterSpeed", .9);
 }
 
@@ -65,7 +77,7 @@ void Robot::OperatorControl()
 {
 	robotDrive.SetSafetyEnabled(false);
 	pid.setAngle(SmartDashboard::GetNumber("angle_p", Constants::angle_p_default), SmartDashboard::GetNumber("angle_i", Constants::angle_i_default), SmartDashboard::GetNumber("angle_d", Constants::angle_d_default));
-	pid.setY(SmartDashboard::GetNumber(" y_p", Constants::y_p_default), SmartDashboard::GetNumber("y_i", Constants::y_i_default), SmartDashboard::GetNumber("y_d", Constants::y_d_default));
+	pid.setY(SmartDashboard::GetNumber("y_p", Constants::y_p_default), SmartDashboard::GetNumber("y_i", Constants::y_i_default), SmartDashboard::GetNumber("y_d", Constants::y_d_default));
 	pid.setX(SmartDashboard::GetNumber("x_p", Constants::x_p_default), SmartDashboard::GetNumber("x_i", Constants::x_i_default), SmartDashboard::GetNumber("x_d", Constants::x_d_default));
 	gyro.ZeroYaw();
 	gyro.Reset();
@@ -127,27 +139,32 @@ void Robot::OperatorControl()
 	int flipDriveOrientation = 1;
 
 	//init functions
-	filter.initializeLastUltrasonics(leftUltrasonic, rightUltrasonic);
-	filter.initializePredictedValue(leftUltrasonic, rightUltrasonic);
+	//filter.initializeLastUltrasonics(leftUltrasonic, rightUltrasonic);
+	//filter.initializePredictedValue(leftUltrasonic, rightUltrasonic);
 	leftProx.SetAutomaticMode(true);
 	rightProx.SetAutomaticMode(true);
 	shooter.enable();
 	climber.enable();
 	compressor.Start();
 
+	Accumulator accum((float)0.0, (float)0.0, (float)0.0, 2, leftProx, rightProx, aimer, *encoder, pid);
+
+	//camera switching
+	int cameraInOperation = 1;
+	bool cameraSwitching = false;
+	bool cameraSwapButtonPressed = false;
+
 	while (IsOperatorControl() && IsEnabled())
 	{
 		shooterSpeed = SmartDashboard::GetNumber("shooterSpeed", .9);
 		/*
-		 *
-		 *
-		 *
 		 *
 		 * BASIC CHECKS
 		 *
 		 */
 
 		 gyroValid = gyro.IsConnected();
+		 SmartDashboard::PutBoolean("gyro alive", gyroValid);
 		 calibrating = gyro.IsCalibrating();
 		 voltage = DriverStation::GetInstance().GetBatteryVoltage();
 		 angleOutput = 0; //reset output so that if the pid loop isn't being called it's not reserved from the last time it's called
@@ -168,11 +185,16 @@ void Robot::OperatorControl()
 			 climbing = false;
 			 gearButtonPressed = true;
 			 gearOpenCounter = 1001;
+			 gear.setBottom(false); //bottom closed - TODO: may need to flip
 			 shooter.stop();
 			 climber.setSpeed(0.0);
 			 intake.runIntake(0.0);
 			 intake.runVerticalConveyor(0.0);
 		 }*/ //TODO: uncomment
+
+		if(driveStick.GetRawButton(12)){
+			gyro.ZeroYaw();
+		}
 
 		/*
 		 *
@@ -200,6 +222,8 @@ void Robot::OperatorControl()
 			shooterAngleReached = shooter.setAngle(aimer.GetAngleToShoot()); //still shooting
 		}
 		if (driveStick.GetRawButton(Constants::shooterShootButton) && !shooterShootButtonPressed && !shooting) { //shoot
+			//TODO: get shooter speed
+			shooter.shoot(shooterSpeed); //shoot at the speed
 			shooterShootButtonPressed = true; //button is pressed so it doesn't immediately cancel
 			shooting = true; //set shooting to true so it knows next time the button is pressed to cancel
 		} else if (driveStick.GetRawButton(Constants::shooterShootButton) && !shooterShootButtonPressed && shooting) { //cancel
@@ -442,7 +466,67 @@ void Robot::OperatorControl()
 		 *
 		 */
 
+		/*
+		 *
+		 * CAMERA SWAP CODE
+		 *
+		 */
 
+
+		if (driveStick.GetRawButton(9) && !cameraSwapButtonPressed) {
+			cameraInOperation++;
+			cameraInOperation = cameraInOperation % 2;
+			SmartDashboard::PutNumber("camera in operation", cameraInOperation);
+			if (cameraInOperation == 0) {
+				CameraServer::GetInstance()->PutVideo(camera0.GetName(), 640, 480);
+			} else {
+				CameraServer::GetInstance()->PutVideo(camera1.GetName(), 640, 480);
+
+			}
+			cameraSwapButtonPressed = true;
+		} else if (!driveStick.GetRawButton(9)) {
+			cameraSwapButtonPressed = false;
+		}
+
+		/*
+		 *
+		 * END CAMERA SWAP CODE
+		 *
+		 */
+
+
+		/*
+		 *
+		 * JOSEPH MOVE TEST CODE
+		 *
+		 */
+
+		if(driveStick.GetRawButton(5))
+		{
+			driveVals = accum.drive(inYTargetMode, true, false, false, 12, 0, 2, angle);
+			driveX = driveVals.x;
+			driveY = driveVals.y;
+			driveZ = driveVals.angle;
+			inYTargetMode = true;
+		}
+		else
+		{
+			SmartDashboard::PutBoolean("Joe in loop", false);
+			inYTargetMode = false;
+		}
+
+
+
+		SmartDashboard::PutNumber("Joseph driveX", driveX);
+		SmartDashboard::PutNumber("Joseph driveY", driveY);
+		SmartDashboard::PutNumber("Joseph driveZ", driveZ);
+		robotDrive.MecanumDrive_Cartesian(driveX, driveY, driveZ); //drive
+
+		/*
+		 *
+		 * END JOSEPH MOVE TEST CODE
+		 *
+		 */
 
 		/*
 		 *
@@ -466,12 +550,19 @@ void Robot::OperatorControl()
 		SmartDashboard::PutNumber("rightAngleToGear", aimer.GetRightAngleToGear());
 		SmartDashboard::PutNumber("yOutput", yOutput);
 		SmartDashboard::PutNumber("xOutput", xOutput);
+		SmartDashboard::PutNumber("Encoder value", encoder->GetDistance());
 //		SmartDashboard::PutNumberArray("leftAngleArray", aimer.GetLeftAngleArray());
 //		SmartDashboard::PutNumberArray("rightAngleArray", aimer.GetRightAngleArray());
 		SmartDashboard::PutBoolean("calibrateButtonPushed", calibrating);
 		SmartDashboard::PutNumber("voltage", voltage);
-		SmartDashboard::PutNumber("Ultrasonic Filter", filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic));
-		SmartDashboard::PutNumber("AngleToGear", aimer.GetAngleToGear());
+		//SmartDashboard::PutNumber("Ultrasonic Filter", filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic));
+		//SmartDashboard::PutNumber("AngleToGear", aimer.GetAngleToGear());
+		SmartDashboard::PutNumber("xDisp", gyro.GetDisplacementX());
+		SmartDashboard::PutNumber("yDisp", gyro.GetDisplacementY());
+		SmartDashboard::PutNumber("xVel", gyro.GetVelocityX());
+		SmartDashboard::PutNumber("yVel", gyro.GetVelocityY());
+		SmartDashboard::PutNumber("xAccel", gyro.GetRawAccelX());
+		SmartDashboard::PutNumber("yAccel", gyro.GetRawAccelY());
 		SmartDashboard::PutBoolean("IsCalibrating", gyro.IsCalibrating());
 		SmartDashboard::PutNumber("Ultrasonic Kalman Filter", filter.kalmanFilter(leftUltrasonic, rightUltrasonic, driveY));
 		SmartDashboard::PutBoolean("Braking", brakes.get());
@@ -507,6 +598,8 @@ void Robot::Autonomous() {
 	robotDrive.SetSafetyEnabled(false);
 	gyro.ResetDisplacement();
 	gyro.ZeroYaw();
+	gear.setBottom(true); //TODO: may need to change to false
+	Accumulator accum((float)0.0, (float)0.0, (float)0.0, 2, leftProx, rightProx, aimer, *encoder, pid);
 	int failsafe = 0;
 	float desiredAngle = 0.0;//This is the angle to which the robot will try to aim
 	float angleChangle = 0.0;
@@ -514,29 +607,68 @@ void Robot::Autonomous() {
 	float currentAngle = 0.0;
 	float leftUltrasonic = leftProx.GetRangeInches();
 	float rightUltrasonic = rightProx.GetRangeInches();
-	bool isDone;
+	bool isDone, started;
 	switch(1)//(int)SmartDashboard::GetNumber("Starting Position", 1))//This gets the starting position from the user
 	{
 	case 1://Position 1: straight from the middle peg
-		desiredAngle = 0.0;
+		//I think we should just be able to go straight from here, dude
+		/*desiredAngle = 0.0;
 		isDone = false;
-		while (!isDone && failsafe < 400 && !IsOperatorControl()) {
-			currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw();
-			angleChangle = pid.PIDAngle(currentAngle, desiredAngle); //set angle output
-			yOutput = pid.PIDY(leftUltrasonic, rightUltrasonic); //TODO: change when we get the kalman filters on
-			robotDrive.MecanumDrive_Cartesian(0.0, yOutput, angleChangle); //drive forward while staying straight
-			if (filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic) < 12) { //TODO: change when we get the kalman filters on
+		started = false;
+		while (!isDone && failsafe < 1000 && !IsOperatorControl()) {
+			DoubleDouble driveVals = accum.drive(started, true, false, false, 10, 0, 2, gyro.GetYaw());
+			started = true;
+			float driveX = driveVals.x;
+			float driveY = driveVals.y;
+			float driveZ = driveVals.angle;
+			robotDrive.MecanumDrive_Cartesian(driveX, driveY, driveZ); //drive forward while staying straight
+			/*if (filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic) < 12) { //TODO: change when we get the kalman filters on
 				isDone = true; //stop the loop
 				failsafe = 400;
-			}
+			}*/
+			/*if (driveY == 0 && driveX == 0)
+				isDone = true;
 			frc::Wait(.01); //wait to avoid hogging cpu cycles
 			failsafe++; //increment failsafe variable
 		}
 		robotDrive.MecanumDrive_Cartesian(0.0, 0.0, 0.0); //stop robot
-		failsafe = 0; //reset failsafe for use later
+		failsafe = 0; //reset failsafe for use later*/
 		break;
 	case 2://Position 2: on the left
-		desiredAngle = 60;
+		desiredAngle = 300; //TODO: 300?
+		isDone = false;
+		while (!isDone && failsafe < 500 && !IsOperatorControl()) { //TODO: change failsafe < 500 to be the calculated value to go the desired distance
+			currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //current angle
+			angleChangle = pid.PIDAngle(currentAngle, 0.0); //drive straight
+			robotDrive.MecanumDrive_Cartesian(0.0, -.5, angleChangle); //drive straight for a bit
+			frc::Wait(.01);
+			failsafe++;
+		}
+		robotDrive.MecanumDrive_Cartesian(0.0, 0.0, 0.0);
+		failsafe = 0;
+		while (!isDone && failsafe < 200 && !IsOperatorControl()) {
+			currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //current angle
+			leftUltrasonic = leftProx.GetRangeInches();
+			rightUltrasonic = rightProx.GetRangeInches();
+			angleChangle = pid.PIDAngle(currentAngle, desiredAngle); //angle drive value
+			if (fabs(angleChangle) < .01) { //if done driving angle
+				yOutput = pid.PIDY(leftUltrasonic, rightUltrasonic); //y drive value
+			} else {
+				yOutput = 0.0; //don't drive y until done driving angle
+			}
+			if (fabs(angleChangle) < .01 && fabs(yOutput) < .01) { //exit loop
+				failsafe = 200;
+				isDone = true;
+			}
+			robotDrive.MecanumDrive_Cartesian(0.0, yOutput, angleChangle); //turn and drive
+			frc::Wait(.01); //wait to avoid hogging cpu cycles
+			failsafe++;
+		}
+		robotDrive.MecanumDrive_Cartesian(0.0, 0.0, 0.0); //stop moving
+		failsafe = 0; //reset failsafe
+		break;
+	case 3://Position 2: on the left
+		desiredAngle = 60; //TODO: 300?
 		isDone = false;
 		while (!isDone && failsafe < 500 && !IsOperatorControl()) { //TODO: change failsafe < 500 to be the calculated value to go the desired distance
 			currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //current angle
@@ -571,15 +703,25 @@ void Robot::Autonomous() {
 	}
 
 	float bigFailsafe = 0;
-
-	while (!(fabs(aimer.TwoCameraAngleFilter()) <= 3.0) && bigFailsafe < 500 && !IsOperatorControl())//This adjusts the accuracy of the aiming of the robot
+	failsafe = 0;
+	DoubleDouble driveVals(0, 0, 0);
+	while(failsafe < 500 && driveVals.x > 0.5)
+	{
+		driveVals = accum.drive(true, true, false, false, 12, 0, 2, gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw());
+		robotDrive.MecanumDrive_Cartesian(driveVals.x, driveVals.y, driveVals.angle);
+		failsafe++;
+	}
+	/*while (!(fabs(aimer.TwoCameraAngleFilter()) <= 3.0) && bigFailsafe < 500 && !IsOperatorControl())//This adjusts the accuracy of the aiming of the robot TODO: change to whatever we're actually using for the camera
 	{
 		int sign = (aimer.TwoCameraAngleFilter() < 0) ? -1 : 1;//Which direction to turn
-		while (aimer.TwoCameraAngleFilter() < 20 * sign && failsafe < 100 && !IsOperatorControl())
+		while (fabs(currentAngle - desiredAngle) < 3 && failsafe < 100 && !IsOperatorControl())
 		{
-			float angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw() + 20 * sign);
+			currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //current angle
+			desiredAngle = aimer.TwoCameraAngleFilter() + currentAngle;
+			desiredAngle = desiredAngle < 0 ? desiredAngle + 360 : desiredAngle > 360 ? desiredAngle - 360 : desiredAngle; //nested question mark operator - bada bop bop ba, I'm lovin' it - TODO: change to whatever we're actually using for the camera
+			float angleChangle = pid.PIDAngle(currentAngle, desiredAngle);
 			robotDrive.MecanumDrive_Cartesian(0.0, 0.0, angleChangle);
-			SmartDashboard::PutNumber("Angle to Gear", aimer.TwoCameraAngleFilter());
+			SmartDashboard::PutNumber("Angle to Gear", aimer.TwoCameraAngleFilter()); //TODO: change if we use something else for the cameras
 			frc::Wait(.01);
 			failsafe++;
 			bigFailsafe++;
@@ -587,16 +729,17 @@ void Robot::Autonomous() {
 		failsafe = 0;
 		while (gyro.GetYaw() + aimer.TwoCameraAngleFilter() >= desiredAngle - 3 && gyro.GetYaw() + aimer.TwoCameraAngleFilter() <= desiredAngle + 3 && failsafe < 200 && !IsOperatorControl())
 		{
-			float angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw() + 20 * sign);
+			angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw() + 20 * sign);
 			robotDrive.MecanumDrive_Cartesian(0, -0.5, angleChangle);
 			SmartDashboard::PutNumber("Angle to Gear", aimer.TwoCameraAngleFilter());
 			frc::Wait(.01);
 			failsafe++;
 		}
 		failsafe = 0;
-		while (!(gyro.GetYaw() >= desiredAngle) && failsafe < 100 && !IsOperatorControl())
+		while (!(currentAngle >= desiredAngle) && failsafe < 100 && !IsOperatorControl())
 		{
-			float angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw());
+			currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //current angle
+			angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw());
 			robotDrive.MecanumDrive_Cartesian(0, 0.0, angleChangle);
 			SmartDashboard::PutNumber("Angle to Gear", aimer.TwoCameraAngleFilter());
 			frc::Wait(.01);
@@ -604,10 +747,10 @@ void Robot::Autonomous() {
 		}
 		failsafe = 0;
 	}
-
-	while(filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic) > 12 && failsafe < 200 && !IsOperatorControl())
+	 */
+	/*while(/*filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic) > 12 && *//*failsafe < 200 && !IsOperatorControl())
 	{
-		float angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw());
+		float angleChangle = pid.PIDAngle(gyro.GetYaw(), aimer.TwoCameraAngleFilter() + gyro.GetYaw()); //TODO: change to joseph's accumulator code
 		float driveSpeed = 0.5 - ((getAverageDistance(leftProx, rightProx) / 80) - 0.5);
 		robotDrive.MecanumDrive_Cartesian(0, -driveSpeed, angleChangle);
 		SmartDashboard::PutNumber("Angle to Gear", aimer.TwoCameraAngleFilter());
@@ -615,13 +758,95 @@ void Robot::Autonomous() {
 		SmartDashboard::PutNumber("rightProx", rightUltrasonic);
 		SmartDashboard::PutNumber("leftIR", leftIR.get());
 		SmartDashboard::PutNumber("rightIR", rightIR.get());
-		SmartDashboard::PutNumber("Ultrasonic Filter", filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic));
+		//SmartDashboard::PutNumber("Ultrasonic Filter", filter.ultrasonicFilter(leftUltrasonic, rightUltrasonic));
+		frc::Wait(.01);
+		failsafe++;
+	}*/
+
+	//TODO: drop gear, or pretend to
+	gear.setBottom(false); //TODO: may need to switch to true
+	frc::Wait(.5);
+	//Woa, woa, woa, back it up
+	failsafe = 0;
+	isDone = false;
+	while (!isDone && failsafe < 100 && !IsOperatorControl()) { //TODO: change failsafe < 200 to be the calculated value to go the desired distance
+		currentAngle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //current angle
+		angleChangle = pid.PIDAngle(currentAngle, 0.0); //drive straight
+		robotDrive.MecanumDrive_Cartesian(0.0, 0.5, angleChangle); //drive straight (backwards) for a bit
 		frc::Wait(.01);
 		failsafe++;
 	}
+	failsafe = 0;
+	isDone = false;
+	//find boilerino
+	//Turn until you can see the target(FOREVER)
+	while(aimer.GetBoilerAge() > 1 && failsafe <= 500 && !IsOperatorControl())
+	{
+		robotDrive.MecanumDrive_Cartesian(0, 0, 0.31415926);
+		failsafe++;
+		frc::Wait(.01);
+	}
+	robotDrive.MecanumDrive_Cartesian(0.0, 0.0, 0.0);
+	//turn to boiling point
+	failsafe = 0;
+	pid.resetPIDAngle(); //if loop is done reset values
+	float angle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw();
+	float angleOutput;
+	float desireAngle = aimer.GetBoilerAngle() + angle;
+	desireAngle = desireAngle < 0 ? desireAngle + 360 : desireAngle > 360 ? desireAngle - 360 : desireAngle; //nested question mark operator - bada bop bop ba, I'm lovin' it - TODO: change to whatever we're actually using for the camera
+	while(failsafe < 500 && fabs(desireAngle - angle) > 1) //turn to boiler
+	{
+		angle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw();
+		angleOutput = pid.PIDAngle(angle, desireAngle);
+		robotDrive.MecanumDrive_Cartesian(0,0,angleOutput);
+		failsafe++;
+		frc::Wait(.01);
+	}
+	failsafe = 0;
+	shooter.shoot(.5); //TODO: change shooter speed
+	//We should have it be stuck in a while loop until all of the balls have been shot.  We should tell the electrical team to put a sensor on the robot to tell us if we're able to shoot anymore.
+	int theVariableThatTellsTheProgramTheDistanceToTheBoilerFromHopper = 55;
 
-	//drop gear
-
+	while(aimer.GetBoilerDistance() > theVariableThatTellsTheProgramTheDistanceToTheBoilerFromHopper + 10 || aimer.GetBoilerDistance() < theVariableThatTellsTheProgramTheDistanceToTheBoilerFromHopper - 10 && failsafe < 500)
+	{
+		float sanicSpead;
+		if(aimer.GetBoilerDistance() < theVariableThatTellsTheProgramTheDistanceToTheBoilerFromHopper)
+		{
+			sanicSpead = -.2;
+		}else sanicSpead = .2;
+		//might hafta go fest
+		if(aimer.GetBoilerDistance() < theVariableThatTellsTheProgramTheDistanceToTheBoilerFromHopper - 20 || aimer.GetBoilerDistance() > theVariableThatTellsTheProgramTheDistanceToTheBoilerFromHopper + 20)
+			sanicSpead *= 2;
+		robotDrive.MecanumDrive_Cartesian(0,sanicSpead,0);
+		failsafe++;
+		frc::Wait(.01);
+	}
+	failsafe = 0;
+	robotDrive.MecanumDrive_Cartesian(0,0,0);
+	failsafe = 0;
+	pid.resetPIDAngle(); //if loop is done reset values
+	angle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw();
+	desireAngle = 180 + angle;
+	desireAngle = desireAngle < 0 ? desireAngle + 360 : desireAngle > 360 ? desireAngle - 360 : desireAngle; //nested question mark operator - bada bop bop ba, I'm lovin' it - TODO: change to whatever we're actually using for the camera
+	while(failsafe < 500 && fabs(desireAngle - angle) > 1) //Make sho you're zeroed to hero
+	{
+		angle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw();
+		angleOutput = pid.PIDAngle(angle, desireAngle);
+		robotDrive.MecanumDrive_Cartesian(0,0,angleOutput);
+		failsafe++;
+		frc::Wait(.01);
+	}
+	failsafe = 0;
+	robotDrive.MecanumDrive_Cartesian(0,0,0);
+	//are there sideways ultra sanics?
+	float distanceToWall = /*Get distance to hopper from left ultra sonic.  Convert to inches if needed*/ 0;
+	encoder->Reset();
+	while(encoder->GetDistance() < distanceToWall - 10)
+	{
+		robotDrive.MecanumDrive_Cartesian(0, 0.5, 0);
+	}
+	robotDrive.MecanumDrive_Cartesian(0,0,0);
+	shooter.shoot(.5); //TODO: change shooter speed
 	robotDrive.SetSafetyEnabled(true);
 }
 

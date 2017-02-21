@@ -34,6 +34,7 @@ namespace Constants {
   static constexpr float x_p_default = .013;
   static constexpr float x_i_default = .001;
   static constexpr float x_d_default = .001;
+  static constexpr float angleErrorLimit = 1.0;
 
   //Joystick
   static constexpr int moveToGearButton = 2;
@@ -88,6 +89,15 @@ namespace Constants {
   //Climber
   static constexpr int climberMaxSpeed = 512; //TODO: temp
   static constexpr int climberRunSpeed = 1.0;
+
+  //Accumulator
+  static constexpr float teleopLoopTime = 0.011;
+  static constexpr float accumulatorPower = -0.008;
+  static constexpr float yDistancePerSecond = 90.0;
+  static constexpr float xDistancePerSecond = 24;
+  static constexpr float rightCameraOffset = 7.5;
+  static constexpr float leftCameraOffset = -7.5;
+  static constexpr float minStrafePower = .3;
 
   //Intake
   static constexpr float intakeRunSpeed = 1.0; //TODO: temp
