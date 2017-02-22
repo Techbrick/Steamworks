@@ -48,6 +48,7 @@ class Robot : public SampleRobot {
 	Encoder* encoder;
 	cs::UsbCamera camera0;
 	cs::UsbCamera camera1;
+	I2C arduino;
 
 public:
 	Robot();
