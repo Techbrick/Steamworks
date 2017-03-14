@@ -46,8 +46,11 @@ class Robot : public SampleRobot {
 	Brakes brakes;
 	PowerDistributionPanel pdp;
 	Encoder* encoder;
+	Encoder yEncoder;
+	Encoder xEncoder;
 	cs::UsbCamera camera0;
 	cs::UsbCamera camera1;
+	I2C arduino;
 
 public:
 	Robot();

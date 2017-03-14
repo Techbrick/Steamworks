@@ -7,7 +7,14 @@ ShooterSubsystem::ShooterSubsystem(int rotatorChannel, int shooterChannel, int a
   accel(I2C::Port::kOnboard)
 {
   //rotator.SetTalonControlMode(CANTalon::TalonControlMode::kThrottleMode); //enum might be wrong - check in eclipse
-  //shooter.SetTalonControlMode(CANTalon::TalonControlMode::kSpeedMode); //enum might be wrong - check in eclipse
+  //shooter.SetFeedbackDevice(CANTalon::FeedbackDevice::CtreMagEncoder_Relative);
+  //shooter.SetTalonControlMode(CANTalon::TalonControlMode::kSpeedMode);
+  //shooter.SetTalonControlMode(CANTalon::TalonControlMode::kThrottleMode);
+  //shooter.SetF(0.1);
+//  shooter.SetP(0.1);
+//  shooter.SetI(0.1);
+//  shooter.SetD(0.1);
+//  shooter.EnableControl();
 	//rotator.SetTalonControlMode(CANTalon::TalonControlMode::kThrottleMode);
 	//shooter.SetTalonControlMode(CANTalon::TalonControlMode::kThrottleMode);
 }
@@ -46,12 +53,13 @@ bool ShooterSubsystem::setAngle(float angle) { //return true when completed
 }
 
 void ShooterSubsystem::setSpeed(float speed) { //set speed to shoot the balls at
-  //shooter.Set(speed * Constants::shooterMaxSpeed); //TODO: get shooter max speed
-	shooter.Set(speed);
+	//shooter.Set(800);
+	shooter.Set(speed * Constants::shooterMaxSpeed); //TODO: get shooter max speed
+	//shooter.Set(speed);
 }
 
 void ShooterSubsystem::shoot(float speed) { //shoot the balls at a certain speed
-	agitate(.5);
+	agitate(-1 * -1.0);
 	setSpeed(speed);
 }
 
@@ -59,6 +67,10 @@ void ShooterSubsystem::stop() { //completely stop the shooter from moving
 	agitate(0.0);
 	setSpeed(0.0);
 	move(0.0);
+}
+
+float ShooterSubsystem::getEncoder() {
+	return shooter.GetEncPosition();
 }
 
 float ShooterSubsystem::Roll() {

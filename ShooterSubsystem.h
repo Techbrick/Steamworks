@@ -26,6 +26,7 @@ public:
 	void setSpeed(float speed);
 	void shoot(float speed);
 	void stop();
+	float getEncoder();
 	float Roll();
 	float Pitch();
 };
