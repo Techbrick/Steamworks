@@ -53,17 +53,17 @@ Robot::Robot() :
 		climber(Constants::climberPin),
 		brakes(Constants::brakesInSole, Constants::brakesOutSole),
 		pdp(),
-		encoder(NULL), //TODO: make sure we need this
+		//encoder(NULL), //TODO: make sure we need this
 		yEncoder(Constants::yOmniEncoderPinA, Constants::yOmniEncoderPinB, false, Encoder::EncodingType::k4X),
 		xEncoder(Constants::xOmniEncoderPinA, Constants::xOmniEncoderPinB, false, Encoder::EncodingType::k4X),
 		arduino(I2C::kOnboard, 6)
 {
 	//yEncoder = new Encoder(Constants::yEncoderPinA, Constants::yEncoderPinB, false, Encoder::EncodingType::k4X);
 	//xEncoder = new Encoder(Constants::xEncoderPinA, Constants::xEncoderPinB, false, Encoder::EncodingType::k4X)
-	encoder = new Encoder(99,99,false,Encoder::EncodingType::k4X);
+	//encoder = new Encoder(99,99,false,Encoder::EncodingType::k4X);
 	yEncoder.SetDistancePerPulse(.001989);
 	xEncoder.SetDistancePerPulse(.001989);
-	encoder->SetDistancePerPulse(.001989);
+	//encoder->SetDistancePerPulse(.001989);
 	robotDrive.SetExpiration(0.1);
 	gyro.ZeroYaw();
 	robotDrive.SetInvertedMotor(RobotDrive::kFrontLeftMotor, false);
@@ -85,6 +85,27 @@ void Robot::RobotInit() {
 	SmartDashboard::PutNumber("shooterSpeed", .9);
 	SmartDashboard::PutNumber("Starting Position", 4);
 	SmartDashboard::PutNumber("Joe x offset", -1);
+	float ultrasonicFrontRight = 0;
+	float ultrasonicFrontLeft = 0;
+	float ultrasonicCenterRight = 0;
+	float ultrasonicCenterLeft = 0;
+	float ultrasonicBackRight = 0;
+	float ultrasonicBackLeft = 0;
+	uint8_t toSend[10];//array of bytes to send over I2C
+	uint8_t toReceive[50];//array of bytes to receive over I2C
+	uint8_t numToSend = 2;//number of bytes to send
+	uint8_t numToReceive = 28;//number of bytes to receive
+
+	uint8_t lightcannonFront = 0;
+	uint8_t lightcannonBack = 0;
+
+	SmartDashboard::PutNumber("ultraFR", ultrasonicFrontRight);
+	SmartDashboard::PutNumber("ultraFL", ultrasonicFrontLeft);
+	SmartDashboard::PutNumber("ultraCR", ultrasonicCenterRight);
+	SmartDashboard::PutNumber("ultraCL", ultrasonicCenterLeft);
+	SmartDashboard::PutNumber("ultraBR", ultrasonicBackRight);
+	SmartDashboard::PutNumber("ultraBL", ultrasonicBackLeft);
+
 }
 
 /**
@@ -244,6 +265,43 @@ void Robot::OperatorControl()
 		 angle = gyro.GetYaw() < 0 ? 360 + gyro.GetYaw() : gyro.GetYaw(); //TODO: swap front back
 		 yOutput = 0; //reset output
 		 xOutput = 0;
+		 //new ultrasonic
+		 lightcannonFront = 20;
+		lightcannonBack = 20;
+		toSend[0] = lightcannonFront;
+		toSend[1] = lightcannonBack;
+		arduino.Transaction(toSend, numToSend, toReceive, numToReceive);
+		ultrasonicFrontRight[0] = toReceive[4];
+		ultrasonicFrontRight[1] = toReceive[5];
+		ultrasonicFrontRight[2] = toReceive[6];
+		ultrasonicFrontRight[3] = toReceive[7];
+		ultrasonicFrontLeft[0] = toReceive[8];
+		ultrasonicFrontLeft[1] = toReceive[9];
+		ultrasonicFrontLeft[2] = toReceive[10];
+		ultrasonicFrontLeft[3] = toReceive[11];
+		ultrasonicCenterRight[0] = toReceive[12];
+		ultrasonicCenterRight[1] = toReceive[13];
+		ultrasonicCenterRight[2] = toReceive[14];
+		ultrasonicCenterRight[3] = toReceive[15];
+		ultrasonicCenterLeft[0] = toReceive[16];
+		ultrasonicCenterLeft[1] = toReceive[17];
+		ultrasonicCenterLeft[2] = toReceive[18];
+		ultrasonicCenterLeft[3] = toReceive[19];
+		ultrasonicBackRight[0] = toReceive[20];
+		ultrasonicBackRight[1] = toReceive[21];
+		ultrasonicBackRight[2] = toReceive[22];
+		ultrasonicBackRight[3] = toReceive[23];
+		ultrasonicBackLeft[0] = toReceive[24];
+		ultrasonicBackLeft[1] = toReceive[25];
+		ultrasonicBackLeft[2] = toReceive[26];
+		ultrasonicBackLeft[3] = toReceive[27];
+		SmartDashboard::PutNumber("ultraFR", ultrasonicFrontRight);
+		SmartDashboard::PutNumber("ultraFL", ultrasonicFrontLeft);
+		SmartDashboard::PutNumber("ultraCR", ultrasonicCenterRight);
+		SmartDashboard::PutNumber("ultraCL", ultrasonicCenterLeft);
+		SmartDashboard::PutNumber("ultraBR", ultrasonicBackRight);
+		SmartDashboard::PutNumber("ultraBL", ultrasonicBackLeft);
+		//old ultrasonic 
 		 leftUltrasonic = leftProx.GetRangeInches();
 		 rightUltrasonic = rightProx.GetRangeInches();
 		 /*if (driveStick.GetRawButton(Constants::cancelAllButton)) {
