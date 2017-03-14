@@ -53,7 +53,6 @@ Robot::Robot() :
 		climber(Constants::climberPin),
 		brakes(Constants::brakesInSole, Constants::brakesOutSole),
 		pdp(),
-		//encoder(NULL), //TODO: make sure we need this
 		yEncoder(Constants::yOmniEncoderPinA, Constants::yOmniEncoderPinB, false, Encoder::EncodingType::k4X),
 		xEncoder(Constants::xOmniEncoderPinA, Constants::xOmniEncoderPinB, false, Encoder::EncodingType::k4X),
 		arduino(I2C::kOnboard, 6)

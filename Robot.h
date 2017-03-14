@@ -45,7 +45,6 @@ class Robot : public SampleRobot {
 	ClimberSubsystem climber;
 	Brakes brakes;
 	PowerDistributionPanel pdp;
-	Encoder* encoder;
 	Encoder yEncoder;
 	Encoder xEncoder;
 	cs::UsbCamera camera0;
