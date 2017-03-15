@@ -162,8 +162,10 @@ void Robot::OperatorControl() {
 	float oneAxisDesiredAngle = 0.0;
 
 	//ultrasonics
-	float leftUltrasonic = leftProx.GetRangeInches();
-	float rightUltrasonic = rightProx.GetRangeInches();
+//	float leftUltrasonic = leftProx.GetRangeInches();
+//	float rightUltrasonic = rightProx.GetRangeInches();
+	float leftUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
+	float rightUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
 
 	//field oriented driveZAxis
 	bool fieldOrientedDrive = false;
@@ -191,8 +193,8 @@ void Robot::OperatorControl() {
 	//init functions
 	//filter.initializeLastUltrasonics(leftUltrasonic, rightUltrasonic);
 	//filter.initializePredictedValue(leftUltrasonic, rightUltrasonic);
-	leftProx.SetAutomaticMode(true);
-	rightProx.SetAutomaticMode(true);
+	//leftProx.SetAutomaticMode(true);
+	//rightProx.SetAutomaticMode(true);
 	shooter.enable();
 	climber.enable();
 	compressor.Start();
@@ -783,8 +785,8 @@ void Robot::OperatorControl() {
 		 *
 		 */
 
-		SmartDashboard::PutNumber("leftProx", leftUltrasonic);
-		SmartDashboard::PutNumber("rightProx", rightUltrasonic);
+		SmartDashboard::PutNumber("leftProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft));
+		SmartDashboard::PutNumber("rightProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackRight));
 		SmartDashboard::PutBoolean("leftIR", leftIR.get());
 		SmartDashboard::PutBoolean("rightIR", rightIR.get());
 		SmartDashboard::PutNumber("angleOutput", angleOutput);
@@ -1151,8 +1153,10 @@ void Robot::Autonomous() {
 	float angleChangle = 0.0;
 	float yOutput = 0.0; //I don't even know
 	float currentAngle = 0.0;
-	float leftUltrasonic = leftProx.GetRangeInches();
-	float rightUltrasonic = rightProx.GetRangeInches();
+//	float leftUltrasonic = leftProx.GetRangeInches();
+//	float rightUltrasonic = rightProx.GetRangeInches();
+	float leftUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
+	float rightUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
 	bool isDone = false, started = false;
 	Timer autoTimer;
 
