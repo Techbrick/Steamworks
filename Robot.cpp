@@ -49,7 +49,7 @@ Robot::Robot() :
 				Encoder::EncodingType::k4X), xEncoder(
 				Constants::xOmniEncoderPinA, Constants::xOmniEncoderPinB, false,
 				Encoder::EncodingType::k4X),
-				sensorarduino(I2C::kOnboard, 6) {
+				sensorarduino(6) {
 	//yEncoder = new Encoder(Constants::yEncoderPinA, Constants::yEncoderPinB, false, Encoder::EncodingType::k4X);
 	//xEncoder = new Encoder(Constants::xEncoderPinA, Constants::xEncoderPinB, false, Encoder::EncodingType::k4X)
 	//encoder = new Encoder(99,99,false,Encoder::EncodingType::k4X);
@@ -77,6 +77,7 @@ void Robot::RobotInit() {
 	SmartDashboard::PutNumber("shooterSpeed", .9);
 	SmartDashboard::PutNumber("Starting Position", 4);
 	SmartDashboard::PutNumber("Joe x offset", -1);
+	/*
 	float ultrasonicFrontRight = 0;
 	float ultrasonicFrontLeft = 0;
 	float ultrasonicCenterRight = 0;
@@ -97,7 +98,7 @@ void Robot::RobotInit() {
 	SmartDashboard::PutNumber("ultraCL", ultrasonicCenterLeft);
 	SmartDashboard::PutNumber("ultraBR", ultrasonicBackRight);
 	SmartDashboard::PutNumber("ultraBL", ultrasonicBackLeft);
-
+	*/
 }
 
 /**
