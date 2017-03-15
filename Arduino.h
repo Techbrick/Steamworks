@@ -50,13 +50,15 @@ public:
 
 	float GetUltrasonicReading(uint32_t UltrasonicID);
 	void SetLightCanon(uint32_t LightCanonID, uint8_t brightness);
-
+	long GetUltrasonicPingNum();
+	double GetTimer();
 
 
 };
 
 float bytesToFloat(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
 unsigned int bytesToUnsignedInt(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
+int bytesToInt(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
 
 
 #endif /* SRC_ARDUINO_H_ */

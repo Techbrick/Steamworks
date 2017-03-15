@@ -165,7 +165,7 @@ void Robot::OperatorControl() {
 //	float leftUltrasonic = leftProx.GetRangeInches();
 //	float rightUltrasonic = rightProx.GetRangeInches();
 	float leftUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
-	float rightUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
+	float rightUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackRight);
 
 	//field oriented driveZAxis
 	bool fieldOrientedDrive = false;
@@ -785,8 +785,12 @@ void Robot::OperatorControl() {
 		 *
 		 */
 
-		SmartDashboard::PutNumber("leftProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft));
-		SmartDashboard::PutNumber("rightProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackRight));
+		SmartDashboard::PutNumber("BleftProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft));
+		SmartDashboard::PutNumber("BrightProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackRight));
+		SmartDashboard::PutNumber("FleftProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicFrontLeft));
+		SmartDashboard::PutNumber("FrightProx", sensorarduino.GetUltrasonicReading(Arduino::UltrasonicFrontRight));
+		SmartDashboard::PutNumber("PingNum", sensorarduino.GetUltrasonicPingNum());
+//		SmartDashboard::PutNumber("ProxTmr", sensorarduino.GetTimer());
 		SmartDashboard::PutBoolean("leftIR", leftIR.get());
 		SmartDashboard::PutBoolean("rightIR", rightIR.get());
 		SmartDashboard::PutNumber("angleOutput", angleOutput);
@@ -1156,9 +1160,12 @@ void Robot::Autonomous() {
 //	float leftUltrasonic = leftProx.GetRangeInches();
 //	float rightUltrasonic = rightProx.GetRangeInches();
 	float leftUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
-	float rightUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackLeft);
+	float rightUltrasonic = sensorarduino.GetUltrasonicReading(Arduino::UltrasonicBackRight);
 	bool isDone = false, started = false;
 	Timer autoTimer;
+
+	sensorarduino.SetLightCanon(Arduino::LightCanonBack,20);
+	sensorarduino.SetLightCanon(Arduino::LightCanonFront,20);
 
 	int time = (SmartDashboard::GetBoolean("Is Red", true)) ? 132 : 149;
 	float driveX = 0.001, driveY = 0.001, driveZ = 0.001;
