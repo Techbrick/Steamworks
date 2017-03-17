@@ -54,8 +54,8 @@ bool ShooterSubsystem::setAngle(float angle) { //return true when completed
 
 void ShooterSubsystem::setSpeed(float speed) { //set speed to shoot the balls at
 	//shooter.Set(800);
-	shooter.Set(speed * Constants::shooterMaxSpeed); //TODO: get shooter max speed
-	//shooter.Set(speed);
+	//shooter.Set(speed * Constants::shooterMaxSpeed); //TODO: get shooter max speed
+	shooter.Set(speed);
 }
 
 void ShooterSubsystem::shoot(float speed) { //shoot the balls at a certain speed

@@ -37,11 +37,13 @@ namespace Constants {
   static constexpr int leftProxPinB = 6;
   static constexpr int rightProxPinA = 9;
   static constexpr int rightProxPinB = 8;
+  static constexpr int gearPusherInSole = 4;
+  static constexpr int gearPusherOutSole = 5;
 
   //PID
-  static constexpr float angle_p_default = .005;
-  static constexpr float angle_i_default = -.001;
-  static constexpr float angle_d_default = .001;
+  static constexpr float angle_p_default = .008;
+  static constexpr float angle_i_default = .0;
+  static constexpr float angle_d_default = .0;
   static constexpr float y_p_default = .005;
   static constexpr float y_i_default = .001;
   static constexpr float y_d_default = .001;
@@ -107,6 +109,7 @@ namespace Constants {
 
   //Shooter
   static constexpr int shooterMaxSpeed = 4196; //TODO: temp
+  static constexpr float autoShooterSpeed = .76;
 
   //Climber
   static constexpr int climberMaxSpeed = 512; //TODO: temp
@@ -114,7 +117,7 @@ namespace Constants {
 
   //Accumulator
   static constexpr float teleopLoopTime = 0.011;
-  static constexpr float accumulatorPower = -0.015;
+  static constexpr float accumulatorPower = -0.0075;
   static constexpr float yDistancePerSecond = 103.0;
   static constexpr float xDistancePerSecond = 36;
   static constexpr float rightCameraOffset = 7.5;
@@ -122,7 +125,7 @@ namespace Constants {
   static constexpr float minStrafePower = .35;
   static constexpr float minForwardPower = .1;
   static constexpr float minTurnPower = .2;
-  static constexpr float accumulatorXp = .02;
+  static constexpr float accumulatorXp = .015;
 
   //Intake
   static constexpr float intakeRunSpeed = 1.0; //TODO: temp
