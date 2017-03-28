@@ -37,11 +37,13 @@ namespace Constants {
   static constexpr int leftProxPinB = 6;
   static constexpr int rightProxPinA = 9;
   static constexpr int rightProxPinB = 8;
+  static constexpr int gearPusherInSole = 4;
+  static constexpr int gearPusherOutSole = 5;
 
   //PID
-  static constexpr float angle_p_default = .005;
-  static constexpr float angle_i_default = -.001;
-  static constexpr float angle_d_default = .001;
+  static constexpr float angle_p_default = .008;
+  static constexpr float angle_i_default = .0;
+  static constexpr float angle_d_default = .0;
   static constexpr float y_p_default = .005;
   static constexpr float y_i_default = .001;
   static constexpr float y_d_default = .001;
@@ -56,25 +58,28 @@ namespace Constants {
   static constexpr int gearActuateButton = 13;
   static constexpr int shooterAutoAngleButton = 5;
   static constexpr int shooterShootButton = 6;
-  static constexpr int cancelAllButton = 3;
+  static constexpr int cancelAllButton = 99;
   //static constexpr int driveXAxis = 2;
   //static constexpr int driveYAxis = 5;
   //static constexpr int driveZAxis = 0;
   static constexpr int driveXAxis = 0;
   static constexpr int driveYAxis = 1;
   static constexpr int driveZAxis = 2;
-  static constexpr int fieldOrientedDriveButton = 14;
+  static constexpr int fieldOrientedDriveButton = 99;
   static constexpr int swapCamerasButton = 8;
   static constexpr int swapDriveButton = 8;
   static constexpr int intakeActivateButton = 9;
   static constexpr int climbButton = 1; //TODO: may want to change - ask drivers / kyle
   static constexpr int climbDownButton = 12;
   static constexpr int brakeButton = 13; //TODO: may want to change - ask drivers / kyle
-  static constexpr int agitateButton = 10;
+  static constexpr int agitateButton = 99;//10;
   static constexpr int reverseAgitatorButton = 11;
   static constexpr int climberSlowMoOperatorButton = 3; //operator stick
   static constexpr int climberSlowMoBackwardsOperatorButton = 4;
   static constexpr int driveFullPowerToggleButton = 4;
+  static constexpr int climberMinPowerButton = 10;
+  static constexpr int gearPusherButton = 14;
+  static constexpr int gearDropButton = 3;
 
   //Button Defs
   /*
@@ -107,6 +112,7 @@ namespace Constants {
 
   //Shooter
   static constexpr int shooterMaxSpeed = 4196; //TODO: temp
+  static constexpr float autoShooterSpeed = .76;
 
   //Climber
   static constexpr int climberMaxSpeed = 512; //TODO: temp
@@ -114,7 +120,7 @@ namespace Constants {
 
   //Accumulator
   static constexpr float teleopLoopTime = 0.011;
-  static constexpr float accumulatorPower = -0.015;
+  static constexpr float accumulatorPower = -0.01;
   static constexpr float yDistancePerSecond = 103.0;
   static constexpr float xDistancePerSecond = 36;
   static constexpr float rightCameraOffset = 7.5;
@@ -122,7 +128,7 @@ namespace Constants {
   static constexpr float minStrafePower = .35;
   static constexpr float minForwardPower = .1;
   static constexpr float minTurnPower = .2;
-  static constexpr float accumulatorXp = .02;
+  static constexpr float accumulatorXp = .015;
 
   //Intake
   static constexpr float intakeRunSpeed = 1.0; //TODO: temp

@@ -3,7 +3,7 @@
 PIDLoop::PIDLoop() //:
 	//filter()
 {
-  k_p_Angle = .025;
+  k_p_Angle = .01;
   k_i_Angle = .001;
   k_d_Angle = .001;
   p_Angle = 0;
@@ -12,7 +12,7 @@ PIDLoop::PIDLoop() //:
   angle_error = 0;
   angleOutput = 0;
   last_angle_error = 0;
-  angleMaxError = 3;
+  angleMaxError = 2;
   iteration_time = .005;
 
   k_p_Y = .025;
@@ -92,14 +92,14 @@ float PIDLoop::PIDAngle(float angleOffset, float desiredAngle) {
 
 
 
-  angleOutput = fabs(angleOutput) < .15 ? std::copysign(.15, angleOutput) : angleOutput; //if angleOutput is below min, set to min
-  angleOutput = fabs(angleOutput) > .7 ? std::copysign(.7, angleOutput) : angleOutput; //if angleOutput is above max, set to max
+  angleOutput = fabs(angleOutput) < .1 ? std::copysign(.1, angleOutput) : angleOutput; //if angleOutput is below min, set to min
+  angleOutput = fabs(angleOutput) > .9 ? std::copysign(.9, angleOutput) : angleOutput; //if angleOutput is above max, set to max
   //angleOutput = angle_error < 0 ? angleOutput : -angleOutput;
   if (fabs(angle_error) < Constants::angleErrorLimit) { //if done moving
 	  i_Angle = 0;
 	  angleOutput = 0;
   }
-  //angleOutput = -angleOutput; //TODO: may need to add back in
+  angleOutput = -angleOutput; //TODO: may need to add back in
   logger << p_Angle << " " << angle_error << " " << angleOutput << "\n"; //output to log file
   //frc::Wait(iteration_time);
   logger.close();

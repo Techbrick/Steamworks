@@ -15,8 +15,6 @@
 #include <math.h>
 #include <thread>
 #include <fstream>
-#include "Arduino.h"
-
 
 #define PI 3.14159265
 
@@ -47,11 +45,12 @@ class Robot : public SampleRobot {
 	ClimberSubsystem climber;
 	Brakes brakes;
 	PowerDistributionPanel pdp;
+	Encoder* encoder;
 	Encoder yEncoder;
 	Encoder xEncoder;
 	cs::UsbCamera camera0;
 	cs::UsbCamera camera1;
-	Arduino sensorarduino;
+	I2C arduino;
 
 public:
 	Robot();

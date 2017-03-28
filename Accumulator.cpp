@@ -9,22 +9,32 @@
 
 DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPos, bool goingPos, float target, float targetAngle, float targetError, float robotAngle)
 {
+	//target
+	//target error
+	float leftus = leftProx->GetRangeInches();
+	float rightus = rightProx->GetRangeInches();
+	float usAverage = 0;
 
-
-	float usAverage = (leftProx->GetRangeInches()+rightProx->GetRangeInches())/2;//This is the average ultrasonic value
-	float visualDistance = aimer->GetDistanceToGear();//This is the distamce based on the cameras
+	if (leftus == 0 && rightus != 0)
+		usAverage = rightus;
+	else if (rightus == 0 && leftus != 0)
+		usAverage = leftus;
+	else if (rightus != 0 && leftus != 0)
+		usAverage = (leftus + rightus) / 2.0;
+	float visualDistance = aimer->GetDistanceToGear();
 
 	SmartDashboard::PutNumber("Joe visual distance", visualDistance );
 
 	SmartDashboard::PutNumber("Joe us average", usAverage);
-	float currentAngleError = targetAngle - robotAngle + lastCameraAngle;//The error of the new angle
-	if (!hasBeenGoing)//If its the first time
+	float currentAngleError = targetAngle - robotAngle + lastCameraAngle;
+	if (!hasBeenGoing)
 	{
 		encoderY->Reset();
 		float intitialAngleError = targetAngle - robotAngle;
-		reset(aimer->GetXDistanceToGear(usAverage, intitialAngleError), usAverage, robotAngle);//Resets the initial values in the accumulator
+		reset(aimer->GetXDistanceToGear(usAverage, intitialAngleError), usAverage, robotAngle);
 		SmartDashboard::PutNumber("Joe start y position", getCurrentPosition().y);
 		lastLeftProxValue = leftProx->GetRangeInches();
+
 		lastRightProxValue = rightProx->GetRangeInches();
 		float cameraAngle = aimer->GetAngleToGear(usAverage);
 		if(fabs(cameraAngle)< 30){
@@ -43,19 +53,19 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 		lastCameraAngle = aimer->GetAngleToGear(history.back().y);
 	}
 
-	if(fabs(lastLeftProxValue - leftProx->GetRangeInches()) > 1){//Checks to be able to update the left ultrasonic value and y value
+	if(fabs(lastLeftProxValue - leftProx->GetRangeInches()) > 1 && leftProx->GetRangeInches() != 0){
 		SmartDashboard::PutString("Joe Status", "new left ultrasonic");
 		updateUS(leftProx->GetRangeInches(), 0);
 		lastLeftProxValue = leftProx->GetRangeInches();
 	}
 
-	if(fabs(lastRightProxValue - rightProx->GetRangeInches()) > 1){//Same thing for right
+	if(fabs(lastRightProxValue - rightProx->GetRangeInches()) > 1 && rightProx->GetRangeInches() != 0){
 		SmartDashboard::PutString("Joe Status", "new right ultrasoinic");
 		updateUS(rightProx->GetRangeInches(), 1);
 		lastRightProxValue = rightProx->GetRangeInches();
 	}
 
-	if (lastCameraAngle != aimer->GetAngleToGear(history.back().y) && fabs(getCurrentPosition().y) >= 24)//Checks to update the X value
+	if (lastCameraAngle != aimer->GetAngleToGear(history.back().y) && fabs(getCurrentPosition().y) >= 24)
 	{
 		float gearAngle = aimer-> GetAngleToGear(history.back().y);
 		if(fabs(gearAngle) < 30){
@@ -79,9 +89,9 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 	float driveZ = 0.0;
 	float powerX = 0.0;
 	float power = 0.0;
-	if(true){//I dunno
+	if(true){
 		float basicXP = SmartDashboard::GetNumber("Joe XP", Constants::accumulatorXp);
-		float tempXPower = -basicXP * (getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0)); //This is the power calculator for the x movement TODO: JOE HAD THIS AS PUT NUMBER. FIND OUT WHY
+		float tempXPower = -basicXP * (getCurrentPosition().x + SmartDashboard::PutNumber("Joe x offset", 0)); //This is the power calculator for the x movement
 
 			 //Fixing the power
 			if (tempXPower > 1)
@@ -95,17 +105,17 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 			else
 				powerX = tempXPower;
 
-			if (fabs(getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0)) < 1 || fabs(getCurrentPosition().y) < 14) //TODO: JOE HAD THIS AS PUT NUMBER. FIND OUT WHY
+			if (fabs(getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0)) < 1 || fabs(getCurrentPosition().y) < 36)
 				powerX = 0.0;
 
-			float yscaleFactor = (fabs(getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0) )<4)? 1: (fabs(getCurrentPosition().y )<= 30 && fabs(getCurrentPosition().y) >= 24)? 0 : .5; //This scales the y depending on how bad the x is
+			float yscaleFactor = (fabs(getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0) )<4)? 1: (fabs(getCurrentPosition().y )<= 42 && fabs(getCurrentPosition().y) >= 36)? 0 : .5;
 
 			float distance = encoderY->GetDistance();
 			float lastDistanceTraveled = distance - lastEncoderDistance;
 			float currentY = getCurrentPosition().y;
-			float distanceError = currentY + (lastDistanceTraveled * ((goingPos) ? -1 : 1) * ((encoderPos) ? 1 : -1)) - target;//Calculates how far away from the wall the robot is
+			float distanceError = currentY + (lastDistanceTraveled * ((goingPos) ? -1 : 1) * ((encoderPos) ? 1 : -1)) - target;
 			float joeP = SmartDashboard::GetNumber("Joe P-value", (Constants::accumulatorPower));
-			float tempPower = -fabs(joeP) * ((powerPos) ? 1 : -1) * distanceError * yscaleFactor;//Calculates the y power
+			float tempPower = -fabs(joeP) * ((powerPos) ? 1 : -1) * distanceError * yscaleFactor;
 
 			if (tempPower > 1)
 				power = 1;
@@ -118,8 +128,6 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 			else
 				power = tempPower;
 
-			SmartDashboard::PutNumber("Joe distance error", distanceError);
-			SmartDashboard::PutNumber("Joe target error", targetError);
 			if (fabs(distanceError) < targetError)
 				power = 0;
 
@@ -132,7 +140,7 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 			SmartDashboard::PutNumber("Joe Error", error);
 			SmartDashboard::PutNumber("Joe X error", errorX);
 			SmartDashboard::PutNumber("Joe current y position", currentY);
-			SmartDashboard::PutNumber("Joe current x position", getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0)); //TODO: JOE HAD THIS AS PUT NUMBER. FIND OUT WHY
+			SmartDashboard::PutNumber("Joe current x position", getCurrentPosition().x + SmartDashboard::PutNumber("Joe x offset", 0));
 
 	}
 		SmartDashboard::PutBoolean("Joe in loop", true);
@@ -142,15 +150,20 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 //	gearAngle = gearAngle > 0 ? gearAngle : gearAngle + 360;
 //	pid->resetPIDAngle(); //if loop is done reset values
 	robotAngle = robotAngle < 0 ? 360 + robotAngle : robotAngle;
-	float angleOutput = pid->PIDAngle(robotAngle, targetAngle);//Calculate the angle changle
-	driveX = (fabs(robotAngle - targetAngle) < 2 && fabs(robotAngle - targetAngle - 360) < 2) ? powerX : 0.0; //TODO: JOE HAD THESE FLIPPED. FIND OUT WHY
-	driveY = (fabs(robotAngle - targetAngle) < 2 && fabs(robotAngle - targetAngle - 360) < 2) ? power : 0.0; //TODO: JOE HAD THESE FLIPPED. FIND OUT WHY
+	float angleOutput = pid->PIDAngle(robotAngle, targetAngle);
+	//driveX = (fabs(robotAngle - targetAngle) > 2 && fabs(robotAngle - targetAngle - 360) < 358) ? 0 : powerX;
+	//driveY = (fabs(robotAngle - targetAngle) > 2 && fabs(robotAngle - targetAngle - 360) < 358) ? 0 : power;
+	driveX = powerX;
+	driveY = power;
 	driveZ = angleOutput;
 	lastEncoderDistance = encoderY->GetDistance();
-	SmartDashboard::PutNumber("Joe robotAngle - targetAngle", fabs(robotAngle - targetAngle));
-	SmartDashboard::PutNumber("Joe robotAngle - targetAngle - 360", fabs(robotAngle - targetAngle - 360));
+	SmartDashboard::PutNumber("robot angle - target angle", robotAngle - targetAngle);
+	SmartDashboard::PutNumber("robot angle - target angle - 360", robotAngle - targetAngle - 360);
 	//SmartDashboard::PutString("Joe Status", "in try loop");
 	//return DoubleDouble(0, 0, 0);
+	driveX = fabs(driveX) > .5 ? std::copysign(.5, driveX) : driveX; //if angleOutput is above max, set to max
+	driveY = fabs(driveY) > .6 ? std::copysign(.6, driveY) : driveY; //if angleOutput is above max, set to max
+
 	return DoubleDouble(driveX, driveY, driveZ);
 	//return DoubleDouble(driveX, 0, driveZ);
 
@@ -180,8 +193,8 @@ DoubleDouble Accumulator::driveToTower(bool hasBeenGoing, bool encoderPos, bool 
 					lastCameraAngle = targetAngle;
 				}
 				SmartDashboard::PutNumber("Joe returned angle from aimer", lastCameraAngle);
-				//updateUS(leftProx->GetRangeInches(), 0);
-				//lastLeftProxValue = leftProx->GetRangeInches();
+				updateUS(leftProx->GetRangeInches(), 0);
+				lastLeftProxValue = leftProx->GetRangeInches();
 				float adjustedAngle = targetAngle - robotAngle + lastCameraAngle;
 				float currentAngleError2 = aimer->ConvertToPlusMinus180(adjustedAngle);
 				updateX(robotAngle - targetAngle);
@@ -195,7 +208,7 @@ DoubleDouble Accumulator::driveToTower(bool hasBeenGoing, bool encoderPos, bool 
 
 }
 
-void Accumulator::update(float encoder, float power, float powerX, float angle)//Update accumulating values
+void Accumulator::update(float encoder, float power, float powerX, float angle)
 {
 //	history.push(DoubleDouble(0,average + history.back().y + error,0));
 //	prevPredicted = predict(power);
@@ -203,7 +216,7 @@ void Accumulator::update(float encoder, float power, float powerX, float angle)/
 	//
 	//
 	float lastY = history.back().y;
-	float lastDistancePower = Constants::yDistancePerSecond * power * Constants::teleopLoopTime;//Add the accumulating y to the current y
+	float lastDistancePower = Constants::yDistancePerSecond * power * Constants::teleopLoopTime;
 	SmartDashboard::PutNumber("Joe last power distance accum", lastDistancePower);
 	float averageDistance = (encoder + lastDistancePower)/2;
 	SmartDashboard::PutNumber("Joe average distance accum", averageDistance);
@@ -213,9 +226,9 @@ void Accumulator::update(float encoder, float power, float powerX, float angle)/
 	history.push_back(DoubleDouble(xPowerDistance + lastX, lastY + averageDistance, angle));
 }
 
-void Accumulator::updateUS(float ultrasonic, int id)//This basically compares the values back in time with the recently returned values to adjust the accumulator because the sensor lag is real
+void Accumulator::updateUS(float ultrasonic, int id)
 {
-	if (ultrasonic < 120 && ultrasonic != 0)//Makes sure there are no bogus values
+	if (ultrasonic < 120)
 	{
 		float lastY = history[(history.size() + lastUpdated[id]) / 2].y;
 		error = ultrasonic - lastY;
