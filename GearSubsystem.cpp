@@ -10,7 +10,7 @@ void GearSubsystem::setBottom(bool state) { //open / close the release mechanism
 }
 
 bool GearSubsystem::getBottom() { //return state of the bottom
-	return bottomPneumatic.get(); //TODO: may need to flip
+	return bottomPneumatic.get();
 	//true = open
 	//false = closed
 }

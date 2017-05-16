@@ -43,6 +43,18 @@ class PIDLoop {
   float xOutput;
   float xMaxError = 0;
 
+  float k_p_YEnc = .05;
+  float k_i_YEnc = .05;
+  float k_d_YEnc = .05;
+  float p_YEnc;
+  float i_YEnc;
+  float d_YEnc;
+  float yEnc_error;
+  float last_yEnc_error;
+  float yEncOutput;
+  float yEncMaxError;
+
+
   float lastLeftUltrasonic = 0;
   float lastRightUltrasonic = 0;
 
@@ -60,6 +72,9 @@ public:
 	//float PIDX(float distance, float angleOffset, float cameraOffset);
 	float PIDX(float angleToGear);
 	float PIDY(float lDistance, float rDistance);
+	float PIDYEncoder(float desiredDistance, float encoderDistance);
+	void resetPIDYEnc();
+	void setYEnc(float pYEncInput, float iYEncInput, float dYEncInput);
 	float ultrasonicFilter(float left, float right);
 };
 

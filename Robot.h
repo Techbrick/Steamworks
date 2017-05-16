@@ -26,7 +26,7 @@ class Robot : public SampleRobot {
 	CANTalon frontLeftMotor;
 	CANTalon rearLeftMotor;
 	CANTalon frontRightMotor;
-	CANTalon rearRightMotor; //TODO: reinitialize for new drive train
+	CANTalon rearRightMotor;
 	frc::RobotDrive robotDrive;
 	frc::Joystick driveStick;
 	frc::Joystick operatorStick;

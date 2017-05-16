@@ -17,6 +17,8 @@ ShooterSubsystem::ShooterSubsystem(int rotatorChannel, int shooterChannel, int a
 //  shooter.EnableControl();
 	//rotator.SetTalonControlMode(CANTalon::TalonControlMode::kThrottleMode);
 	//shooter.SetTalonControlMode(CANTalon::TalonControlMode::kThrottleMode);
+	shooter.ClearStickyFaults();
+	rotator.ClearStickyFaults();
 }
 
 void ShooterSubsystem::enable() { //enable cantalons
@@ -43,8 +45,8 @@ float ShooterSubsystem::getAngle() {
 
 bool ShooterSubsystem::setAngle(float angle) { //return true when completed
   float currentAngle = getAngle();
-  if (fabs(currentAngle - angle) > 1) { //if it's close enough - TODO: may have to lower acceptable error
-    move(.25); //slowly angle - TODO: pid maybe? see how well it works
+  if (fabs(currentAngle - angle) > 1) { //if it's close enough
+    move(.25); //slowly angle
     return false; //not done yet
   } else {
     move(0.0); //stop moving - you're there
@@ -54,7 +56,7 @@ bool ShooterSubsystem::setAngle(float angle) { //return true when completed
 
 void ShooterSubsystem::setSpeed(float speed) { //set speed to shoot the balls at
 	//shooter.Set(800);
-	//shooter.Set(speed * Constants::shooterMaxSpeed); //TODO: get shooter max speed
+	//shooter.Set(speed * Constants::shooterMaxSpeed);
 	shooter.Set(speed);
 }
 
@@ -81,3 +83,18 @@ float ShooterSubsystem::Pitch(){
 	return (atan2(accel.GetY(),sqrt(accel.GetX()*accel.GetX()+accel.GetZ()*accel.GetZ()))  * 180.0) / PI;
 }
 
+bool ShooterSubsystem::rotatorForwardLimitSwitch() {
+	return rotator.IsFwdLimitSwitchClosed();
+}
+
+bool ShooterSubsystem::rotatorReverseLimitSwitch() {
+	return rotator.IsRevLimitSwitchClosed();
+}
+
+bool ShooterSubsystem::rotatorForwardLimitSwitchOK() {
+	return rotator.GetForwardLimitOK();
+}
+
+bool ShooterSubsystem::rotatorReverseLimitSwitchOK() {
+	return rotator.GetReverseLimitOK();
+}

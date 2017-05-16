@@ -58,7 +58,7 @@ float Aimer::TwoCameraAngleFilter() { //TODO: do math for if the gear is between
 	float dCTot;
 	float center;
 	float centerAngle;
-	float dCam = 15.75; //TODO: I think this is a value but need to check
+	float dCam = 15.75;
 	if (leftAngle < 0 && rightAngle < 0) {
 		topAngle = leftAngle - rightAngle; //TODO: may have to flip signs
 	} else if (leftAngle > 0 && rightAngle > 0) {
@@ -84,7 +84,7 @@ float Aimer::TwoCameraAngleFilter() { //TODO: do math for if the gear is between
 	return centerAngle;
 }
 
-/*float Aimer::getXDistanceToGear() { //TODO: do math for if the gear is between the cameras
+/*float Aimer::getXDistanceToGear() {
 	float leftAngle = 90 - GetLeftAngleToGear();
 	float rightAngle = 90 - GetRightAngleToGear();
 	float topAngle;
@@ -93,7 +93,7 @@ float Aimer::TwoCameraAngleFilter() { //TODO: do math for if the gear is between
 	float perpendicular;
 	float dX;
 	float dExt;
-	float dCam = 15.75; //TODO: I think this is a value but need to check
+	float dCam = 15.75;
 	if ((GetLeftAngleToGear() > 0 && GetRightAngleToGear() < 0) || (GetLeftAngleToGear() < 0 && GetRightAngleToGear() > 0)) {
 		topAngle = 180 - (leftAngle + rightAngle);
 		rightDistance = (dCam * sin(leftAngle * PI / 180)) / sin(topAngle * PI / 180);
@@ -111,11 +111,11 @@ float Aimer::TwoCameraAngleFilter() { //TODO: do math for if the gear is between
 		if (GetLeftAngleToGear() < 0 && GetRightAngleToGear() < 0) {
 			leftAngle = 90 + GetLeftAngleToGear();
 			rightAngle = 90 - GetRightAngleToGear();
-			topAngle = leftAngle - rightAngle; //TODO: may have to flip signs
+			topAngle = leftAngle - rightAngle;
 		} else if (GetLeftAngleToGear() > 0 && GetRightAngleToGear() > 0) {
 			leftAngle = 90 - GetLeftAngleToGear();
 			rightAngle = 90 + GetRightAngleToGear();
-			topAngle = rightAngle - leftAngle; //TODO: may have to flip signs
+			topAngle = rightAngle - leftAngle;
 		}
 		leftDistance = (dCam * sin(rightAngle * PI / 180)) / sin(topAngle * PI / 180);
 		perpendicular = leftDistance * sin(leftAngle * PI / 180);
@@ -194,21 +194,20 @@ float Aimer::GetAngleToGear(float distance)
 
 			if ((90 - l[x]) + (90 + (r[y])) < 185 && l[x] < 500 && r[y] < 500 && lastLeft < 1 && lastRight < 1) {
 							//float intAngle = atan((tan(l[x]) +  tan(r[y]))/2);
-							float intAngle = (l[x] + r[y])/2;
+							float intAngle = ((l[x] + Constants::leftAngleOffset) + (r[y] + Constants::rightAngleOffset))/2;
 							angles.push_back(intAngle);
 							//angles.push_back(atan(((1 / tan(l[x] * PI / 180)) + (1 / tan(r[x] * PI / 180))) / 2) * 180 / PI);
 							frc::SmartDashboard::PutString("Joe AimerSelect", "two angles");
-							return intAngle;
 			}
 			else if (l[x] < 100 && r[y] > 500 && lastLeft < 1 && distance != 0)
 			{
-				angle = atan((tan(l[x] * PI / 180) - Constants::leftCameraOffset / distance)) * 180 / PI;
+				angle = atan((tan((l[x] + Constants::leftAngleOffset) * PI / 180) - Constants::leftCameraOffset / distance)) * 180 / PI;
 				frc::SmartDashboard::PutNumber("Joe aimer left select", angle);
 				frc::SmartDashboard::PutString("Joe AimerSelect", "left angles");
 			}
 			else if (l[x] > 100 && r[y] < 500 &&  lastRight < 1  && distance != 0)
 			{
-				angle = atan((tan(r[y] * PI / 180) - Constants::rightCameraOffset / distance) ) * 180 / PI;
+				angle = atan((tan((r[y] + Constants::rightAngleOffset) * PI / 180) - Constants::rightCameraOffset / distance) ) * 180 / PI;
 
 				frc::SmartDashboard::PutString("Joe AimerSelect", "right angles");
 			}else if (l[x] < 100 && lastLeft < 1  && distance != 0){
@@ -241,7 +240,7 @@ float Aimer::GetAngleToGear(float distance)
 				angle = (fabs(angles[i]) < fabs(angle)) ? angles[i] : angle;
 			}
 	}
-	if(angle = -999.0) angle = 999.0;
+	if(angle == -999.0) angle = 999.0;
 	return angle;
 }
 

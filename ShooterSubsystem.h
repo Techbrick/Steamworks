@@ -29,6 +29,10 @@ public:
 	float getEncoder();
 	float Roll();
 	float Pitch();
+	bool rotatorForwardLimitSwitch();
+	bool rotatorReverseLimitSwitch();
+	bool rotatorForwardLimitSwitchOK();
+	bool rotatorReverseLimitSwitchOK();
 };
 
 #endif

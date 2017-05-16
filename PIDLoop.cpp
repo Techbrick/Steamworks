@@ -35,7 +35,18 @@ PIDLoop::PIDLoop() //:
   x_error = 0;
   last_x_error = 0;
   xOutput = 0;
-  xMaxError = 3; //TODO: may have to play around with this number
+  xMaxError = 3;
+
+  k_p_YEnc = .05;
+  k_i_YEnc = .05;
+  k_d_YEnc = .05;
+  p_YEnc = 0.0;
+  i_YEnc = 0.0;
+  d_YEnc = 0.0;
+  yEnc_error = 0.0;
+  last_yEnc_error = 0.0;
+  yEncOutput = 0.0;
+  yEncMaxError = 2;
 }
 
 void PIDLoop::resetPIDAngle() { //reset angle pid values
@@ -73,6 +84,7 @@ void PIDLoop::setY(float pYInput, float iYInput, float dYInput) { //set y PID co
 	k_i_Y = iYInput;
 	k_d_Y = dYInput;
 }
+
 float PIDLoop::PIDAngle(float angleOffset, float desiredAngle) {
   //put in separate loop - not a while loop - keep checking and updating every runthrough of the normal loop - boolean for if this is running to stop you from manually moving the robot while the loop is running
   std::ofstream logger; logger.open("/var/loggerFile.txt", std::ofstream::out); //start logger
@@ -92,14 +104,14 @@ float PIDLoop::PIDAngle(float angleOffset, float desiredAngle) {
 
 
 
-  angleOutput = fabs(angleOutput) < .1 ? std::copysign(.1, angleOutput) : angleOutput; //if angleOutput is below min, set to min
+  angleOutput = fabs(angleOutput) < .14 ? std::copysign(.14, angleOutput) : angleOutput; //if angleOutput is below min, set to min
   angleOutput = fabs(angleOutput) > .9 ? std::copysign(.9, angleOutput) : angleOutput; //if angleOutput is above max, set to max
   //angleOutput = angle_error < 0 ? angleOutput : -angleOutput;
   if (fabs(angle_error) < Constants::angleErrorLimit) { //if done moving
 	  i_Angle = 0;
 	  angleOutput = 0;
   }
-  angleOutput = -angleOutput; //TODO: may need to add back in
+  angleOutput = -angleOutput;
   logger << p_Angle << " " << angle_error << " " << angleOutput << "\n"; //output to log file
   //frc::Wait(iteration_time);
   logger.close();
@@ -187,9 +199,8 @@ float PIDLoop::PIDY(float lDistance, float rDistance) {
 
   std::ofstream logger; logger.open("/var/loggerFile.txt", std::ofstream::out); //start logger
   logger << "Loop entered\n";
-  //TODO: put these checks into the ultrasonic filter function
   //averageDistance = filter.ultrasonicFilter(lDistance, rDistance);
-  averageDistance = 12; //TODO: why is this 12? @Joe
+  averageDistance = ultrasonicFilter(lDistance, rDistance);
   if (averageDistance == -1) {
 	  return -1;
   }
@@ -217,6 +228,41 @@ float PIDLoop::PIDY(float lDistance, float rDistance) {
   SmartDashboard::PutNumber("i_Y", i_Y);*/
 
   return -yOutput;
+}
+
+float PIDLoop::PIDYEncoder(float desiredDistance, float encoderDistance) {
+	  yEnc_error = desiredDistance - encoderDistance; //desired distance = encoder distance at t = 0 + however far the ultrasonics say we need to move at t = 0
+
+	  p_YEnc = k_p_YEnc * yEnc_error; //calculate p
+	  i_YEnc += k_i_YEnc * (yEnc_error * iteration_time); //calculate i
+	  d_YEnc = k_d_YEnc * ((yEnc_error - last_yEnc_error) / iteration_time); //calculate d
+	  yEncOutput = p_YEnc + i_YEnc + d_YEnc; //calculate yOutput
+	  last_yEnc_error = yEnc_error; //set last y error for d value
+
+	  yEncOutput = fabs(yEncOutput) > .7 ? std::copysign(.7, yEncOutput) : yEncOutput; //if above max set to max
+	  yEncOutput = fabs(yEncOutput) < Constants::minForwardPower ? std::copysign(Constants::minForwardPower, yEncOutput) : yEncOutput; //if below min set to min
+
+	  if (yEnc_error < yEncMaxError) { //if able to stop
+		  yEncOutput = 0;
+		  i_YEnc = 0;
+	  }
+
+	  SmartDashboard::PutNumber("yEnc_error", yEnc_error);
+	  SmartDashboard::PutNumber("i_YEnc", i_YEnc);
+
+	  return -yOutput;
+}
+
+void PIDLoop::resetPIDYEnc() {
+	p_YEnc = 0;
+	i_YEnc = 0;
+	d_YEnc = 0;
+}
+
+void PIDLoop::setYEnc(float pYEncInput, float iYEncInput, float dYEncInput) {
+	k_p_YEnc = pYEncInput;
+	k_i_YEnc = iYEncInput;
+	k_d_YEnc = dYEncInput;
 }
 
 float PIDLoop::ultrasonicFilter(float left, float right) { //to smooth out the ultrasonic values

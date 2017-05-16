@@ -10,8 +10,8 @@ namespace Constants {
   static constexpr int rearRightDriveChannel = 3;
   static constexpr int driveStickChannel = 0;
   static constexpr int operatorStickChannel = 1;
-  static constexpr int gearActuatorInSole = 1; //TODO: may change
-  static constexpr int gearActuatorOutSole = 2; //TODO: may change
+  static constexpr int gearActuatorInSole = 1;
+  static constexpr int gearActuatorOutSole = 2;
   static constexpr int rotatorChannel = 5;
   static constexpr int shooterChannel = 7;
   static constexpr int agitatorChannel = 0;
@@ -20,8 +20,8 @@ namespace Constants {
   static constexpr int intakeMotorPin = 99;
   static constexpr int verticalConveyorMotorPin = 1;
   static constexpr int climberPin = 6;
-  static constexpr int brakesInSole = 4; //TODO: may change
-  static constexpr int brakesOutSole = 5; //TODO: may change
+  static constexpr int brakesInSole = 4;
+  static constexpr int brakesOutSole = 5;
   static constexpr int intakePDPChannel = 10;
   static constexpr int xOmniEncoderPinA = 2;//0;
   static constexpr int xOmniEncoderPinB = 3;//1;
@@ -47,6 +47,9 @@ namespace Constants {
   static constexpr float y_p_default = .005;
   static constexpr float y_i_default = .001;
   static constexpr float y_d_default = .001;
+  static constexpr float yEnc_p_default = .0075;
+  static constexpr float yEnc_i_default = .001;
+  static constexpr float yEnc_d_default = .001;
   static constexpr float x_p_default = .013;
   static constexpr float x_i_default = .001;
   static constexpr float x_d_default = .001;
@@ -54,9 +57,9 @@ namespace Constants {
 
   //Joystick
   static constexpr int moveToGearButton = 2;
-  static constexpr int driveOneAxisButton = 7;
+  static constexpr int driveOneAxisButton = 99;
   static constexpr int gearActuateButton = 13;
-  static constexpr int shooterAutoAngleButton = 5;
+  static constexpr int shooterAutoAngleButton = 99;
   static constexpr int shooterShootButton = 6;
   static constexpr int cancelAllButton = 99;
   //static constexpr int driveXAxis = 2;
@@ -69,9 +72,9 @@ namespace Constants {
   static constexpr int swapCamerasButton = 8;
   static constexpr int swapDriveButton = 8;
   static constexpr int intakeActivateButton = 9;
-  static constexpr int climbButton = 1; //TODO: may want to change - ask drivers / kyle
+  static constexpr int climbButton = 1;
   static constexpr int climbDownButton = 12;
-  static constexpr int brakeButton = 13; //TODO: may want to change - ask drivers / kyle
+  static constexpr int brakeButton = 13;
   static constexpr int agitateButton = 99;//10;
   static constexpr int reverseAgitatorButton = 11;
   static constexpr int climberSlowMoOperatorButton = 3; //operator stick
@@ -80,6 +83,8 @@ namespace Constants {
   static constexpr int climberMinPowerButton = 10;
   static constexpr int gearPusherButton = 14;
   static constexpr int gearDropButton = 3;
+  static constexpr int climberSlowButton = 5;
+  static constexpr int climberAxis = 3; //L2
 
   //Button Defs
   /*
@@ -111,29 +116,33 @@ namespace Constants {
   static constexpr int driveZDegree = 1;
 
   //Shooter
-  static constexpr int shooterMaxSpeed = 4196; //TODO: temp
+  static constexpr int shooterMaxSpeed = 4196;
   static constexpr float autoShooterSpeed = .76;
 
   //Climber
-  static constexpr int climberMaxSpeed = 512; //TODO: temp
+  static constexpr int climberMaxSpeed = 512;
   static constexpr int climberRunSpeed = 1.0;
 
   //Accumulator
   static constexpr float teleopLoopTime = 0.011;
-  static constexpr float accumulatorPower = -0.01;
+  static constexpr float accumulatorPower = -.01;//was -0.015; //was -.01
   static constexpr float yDistancePerSecond = 103.0;
   static constexpr float xDistancePerSecond = 36;
-  static constexpr float rightCameraOffset = 7.5;
-  static constexpr float leftCameraOffset = -7.5;
+  static  float rightCameraOffset = 7.5;
+  static  float leftCameraOffset = -7.5;
+  static  float rightAngleOffset = -1;
+  static  float leftAngleOffset = 0;
   static constexpr float minStrafePower = .35;
-  static constexpr float minForwardPower = .1;
+  static constexpr float minForwardPower = .2; //was .1
   static constexpr float minTurnPower = .2;
-  static constexpr float accumulatorXp = .015;
+  static constexpr float accumulatorXp = .045;//.05;//.03;//was .0225; // was .015;
+  static constexpr float autoNotBoilerSideForwardDistance = 54;//66.5; //TODO: may need to change - math says 70 - I say that's too low
+  static constexpr float autoBoilerSideForwardDistance = 60;
 
   //Intake
-  static constexpr float intakeRunSpeed = 1.0; //TODO: temp
-  static constexpr float verticalConveyorRunSpeed = 1.0; //TODO: temp
-  static constexpr float intakeCurrentMax = 100; //TODO: temp
+  static constexpr float intakeRunSpeed = 1.0;
+  static constexpr float verticalConveyorRunSpeed = 1.0;
+  static constexpr float intakeCurrentMax = 100;
 
 };
 #endif

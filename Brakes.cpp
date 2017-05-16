@@ -9,5 +9,5 @@ void Brakes::set(bool state) {
 }
 
 bool Brakes::get() {
-	return brake.get(); //TODO: may need to flip
+	return brake.get();
 }

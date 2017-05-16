@@ -37,15 +37,15 @@ float Filters::ultrasonicFilter(float left, float right) {
 		lastRightUltrasonic = right;
 
 		return (leftOutput + rightOutput) / 2; //average
-		SmartDashboard::PutString("PIDY Avg. Dist. Loop", "ultrasonicFilter");
+//		SmartDashboard::PutString("PIDY Avg. Dist. Loop", "ultrasonicFilter");
 	} else if ((left < 0 || left > 120) && (right > 0 && right < 120)) { //if left sensor is outside of range to move to gear
 		return right;
-		SmartDashboard::PutString("PIDY Avg. Dist. Loop", "right");
+//		SmartDashboard::PutString("PIDY Avg. Dist. Loop", "right");
 	} else if ((right < 0 || right > 120) && (left > 0 && left < 120)) { //if right sensor is outside of range to move to gear
 		return left;
-		SmartDashboard::PutString("PIDY Avg. Dist. Loop", "left");
+//		SmartDashboard::PutString("PIDY Avg. Dist. Loop", "left");
 	} else {
-		SmartDashboard::PutString("PIDY Status", "Ultrasonic Error");
+//		SmartDashboard::PutString("PIDY Status", "Ultrasonic Error");
 		return -1;
 	}
 }
@@ -53,7 +53,7 @@ float Filters::ultrasonicFilter(float left, float right) {
 float Filters::kalmanFilter(float left, float right, float power) {
 	float ultrasonicFilterVar;
 	if (fabs(left - lastLeftUltrasonic) < 0.01 && fabs(right - lastRightUltrasonic) < 0.01) {
-		predictedValue += 90 * power * refreshRate; //90 inches * power * time (-power means going forward) TODO: flip sign if necessary
+		predictedValue += 90 * power * refreshRate; //90 inches * power * time (-power means going forward)
 		return predictedValue;
 	}
 	if (fabs(left - lastLeftUltrasonic) > 0.01) {
@@ -70,4 +70,4 @@ float Filters::kalmanFilter(float left, float right, float power) {
 }
 
 //predictedValue = predictedValue + (ultrasonicFilterVar - lastUpdatedPredictedValue); //ultrasonic filter - lastValue is the difference in the actual which we use to update our predicted
-//predictedValue += 90 * power * refreshRate; //90 inches * power * time (-power means going forward) TODO: flip sign if necessary
+//predictedValue += 90 * power * refreshRate; //90 inches * power * time (-power means going forward)

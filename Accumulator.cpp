@@ -91,7 +91,7 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 	float power = 0.0;
 	if(true){
 		float basicXP = SmartDashboard::GetNumber("Joe XP", Constants::accumulatorXp);
-		float tempXPower = -basicXP * (getCurrentPosition().x + SmartDashboard::PutNumber("Joe x offset", 0)); //This is the power calculator for the x movement
+		float tempXPower = -basicXP * (getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0)); //This is the power calculator for the x movement
 
 			 //Fixing the power
 			if (tempXPower > 1)
@@ -140,12 +140,12 @@ DoubleDouble Accumulator::drive(bool hasBeenGoing, bool encoderPos, bool powerPo
 			SmartDashboard::PutNumber("Joe Error", error);
 			SmartDashboard::PutNumber("Joe X error", errorX);
 			SmartDashboard::PutNumber("Joe current y position", currentY);
-			SmartDashboard::PutNumber("Joe current x position", getCurrentPosition().x + SmartDashboard::PutNumber("Joe x offset", 0));
+			SmartDashboard::PutNumber("Joe current x position", getCurrentPosition().x + SmartDashboard::GetNumber("Joe x offset", 0));
 
 	}
 		SmartDashboard::PutBoolean("Joe in loop", true);
 
-//	float gearAngle = aimer->TwoCameraAngleFilter() + robotAngle; //TODO: get angle via function (closest angle of the 3 options (0, 60, -60, find which is closest to current angle)?)
+//	float gearAngle = aimer->TwoCameraAngleFilter() + robotAngle;
 //	gearAngle = gearAngle < 360 ? gearAngle : gearAngle - 360; //scaling
 //	gearAngle = gearAngle > 0 ? gearAngle : gearAngle + 360;
 //	pid->resetPIDAngle(); //if loop is done reset values
